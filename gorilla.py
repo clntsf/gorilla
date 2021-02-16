@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = 1.31
+version = 1.34
 
 import tkinter as tk
 from tkinter import filedialog
