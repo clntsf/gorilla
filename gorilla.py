@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-version = 1.10
+version = 1.20
 
 import tkinter as tk
 from tkinter import filedialog
