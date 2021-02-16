@@ -18,13 +18,8 @@ user_helpText = ''
 
 def checkIfNewest():
 	newestVersion = float(str(requests.get(versionSourceUrl, allow_redirects=True).content)[2:-3])
-	if newestVersion > version:
-		print('A newer version of this program is available. This program will stop and automatically update')
-		newVersion = requests.get(codeSourceUrl, allow_redirects = True)
-		open(__file__, 'wb').write(newVersion.content)
-	else: pass
+	return newestVersion == version:
 		
-
 # Takes in arguments passed to terminal and determines the function to perform #######################################################################
 
 def getRuntype():
@@ -157,9 +152,14 @@ def get_responses(output_type='xlsx', headers=default_headers, clean_results=Tru
 # Main function ########################################################################################################################
 
 def main():
-	checkIfNewest()
-	runtype = getRuntype()
-	if runtype == 'standard': get_responses()
-	else: doSpecialRuntype(runtype)
+	if checkIfNewest():
+		runtype = getRuntype()
+		if runtype == 'standard': get_responses()
+		else: doSpecialRuntype(runtype)
+	else:
+		print('A newer version of this program is available. This program will stop and automatically update. Please restart the program on completion')
+		newVersion = requests.get(codeSourceUrl, allow_redirects = True)
+		open(__file__, 'wb').write(newVersion.content)
+		print('Update installed successfully.')
 
 main()
