@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-
-version = 1.20
+1.30
 
 import tkinter as tk
 from tkinter import filedialog
@@ -17,7 +16,7 @@ user_colsText = f'\nList of Column headers in selected sheet: \n' # Header for t
 user_helpText = '' 
 
 def checkIfNewest():
-	newestVersion = float(str(requests.get(versionSourceUrl, allow_redirects=True).content)[2:-3])
+	newestVersion = float(str(requests.get(codeSourceUrl, allow_redirects=True).content).split('\\n')[1])
 	return newestVersion == version:
 		
 # Takes in arguments passed to terminal and determines the function to perform #######################################################################
