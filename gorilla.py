@@ -7,7 +7,6 @@ import pandas as pd
 import sys; import os
 import requests
 
-versionSourceUrl = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/latest_version.txt'
 codeSourceUrl = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/gorilla.py'
 
 default_headers = ['Trial Number', 'Response', 'Zone Type'] # List of default columns, add columns in as needed. Columns listed here but not in the excel sheet will not be included
