@@ -1,2 +1,1 @@
-# gorilla
-Gorilla reader project
+1.0
