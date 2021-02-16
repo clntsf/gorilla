@@ -1,16 +1,29 @@
-
-
 #!/usr/bin/env python3
+
+version = 1.10
 
 import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
 import sys; import os
+import requests
+
+versionSourceUrl = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/latest_version.txt'
+codeSourceUrl = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/gorilla.py'
 
 default_headers = ['Trial Number', 'Response', 'Zone Type'] # List of default columns, add columns in as needed. Columns listed here but not in the excel sheet will not be included
 user_cmds = ['getCols', 'getDefaultCols', 'setDefaultCols', 'addDefaultCols', 'removeDefaultCols', 'help'] # List of commands the user can input to perform special functions. ** Should not be edited under most circumstances **
 user_colsText = f'\nList of Column headers in selected sheet: \n' # Header for the getCols function, which displays all columns in the selected sheet
 user_helpText = '' 
+
+def checkIfNewest():
+	newestVersion = float(str(requests.get(versionSourceUrl, allow_redirects=True).content)[2:-3])
+	if newestVersion > version:
+		print('A newer version of this program is available. This program will stop and automatically update')
+		newVersion = requests.get(codeSourceUrl, allow_redirects = True)
+		open(__file__, 'wb').write(newVersion.content)
+	else: pass
+		
 
 # Takes in arguments passed to terminal and determines the function to perform #######################################################################
 
@@ -144,7 +157,7 @@ def get_responses(output_type='xlsx', headers=default_headers, clean_results=Tru
 # Main function ########################################################################################################################
 
 def main():
-
+	checkIfNewest()
 	runtype = getRuntype()
 	if runtype == 'standard': get_responses()
 	else: doSpecialRuntype(runtype)
