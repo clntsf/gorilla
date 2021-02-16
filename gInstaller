@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import shutil
+import requests
+
+homedir = os.getenv("HOME")
+realdir = os.path.dirname(os.path.realpath(__file__))
+
+with open(homedir+'/.zprofile','r') as reader: # adds ~/bin to path if it isnt already
+	lines = reader.readlines(); reader.close()
+	if 'export PATH=$PATH":$HOME/bin" \n' in lines: pass 
+	else: writer = open(homedir+'/.zprofile','a'); writer.write('export PATH=$PATH":$HOME/bin" \n'); writer.close()
+
+os.system(f'mkdir ~/bin')
+url = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/gorilla.py' 
+r = requests.get(url, allow_redirects=True)
+open(f'{homedir}/bin/gorilla', 'wb').write(r.content)
+os.system(f'chmod +x ~/bin/gorilla')
+
+#os.remove(__file__)
