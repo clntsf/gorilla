@@ -16,7 +16,7 @@ user_helpText = ''
 
 def checkIfNewest():
 	nv1 = str(requests.get(codeSourceUrl, allow_redirects=True).content).split('\\n')[1]
-	newestVersion = float(nv1[nv1.index('=')+1:]); print(newestVersion)
+	newestVersion = float(nv1[nv1.index('=')+1:])
 	return newestVersion == version
 		
 # Takes in arguments passed to terminal and determines the function to perform #######################################################################
