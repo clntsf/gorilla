@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-version = 1.34
+version = 1.40
 
 import tkinter as tk
 from tkinter import filedialog
@@ -55,6 +55,27 @@ def setDefaultHeaders(newHeaders):
 	
 # Master function for special runtype commands ################################################################################################
 
+def editDefaultHeaders(mode, userInputMessage, userConfirmationMessage, userConfirmedMessage, userConfirmedVars, userCancelledMessage):
+	
+	args = sys.argv[2:]
+	if len(args) == 0: args = input(userInputMessage)
+	else: args = ' '.join(args)	
+	if ',' in args: args = args.split(',')
+	else: args = [args]	
+	headers = [item.lstrip(' ') for item in args]
+	
+	if mode == 'remove':
+		nOverlap = [item for item in headers if item.upper() not in [col.upper() for col in default_headers]]
+		if nOverlap == headers:
+			print(f"""None of these columns ({headers}) were found in the list of default headers ({default_headers}).
+			      	> if you meant to add to or replace the current default columns try addDefaultCols or setDefaultCols""")
+			return	
+	userConfirmation = (input(userConfirmationMessage.format(headers)) == 'Y')
+	if userConfirmation:
+		print(userConfirmedMessage.format(eval(userConfirmedVars)))
+		if mode == 'remove' and len(nOverlap) > 0: print(f'Column(s) {nOverlap} were not found in the list of default headers, so they were ignored')
+	else: print(userCancelledMessage.format(default_headers))
+
 def doSpecialRuntype(runtype):
 	
 	if runtype == 'getCols':
@@ -64,52 +85,22 @@ def doSpecialRuntype(runtype):
 	elif runtype == 'getDefaultCols':
 		{print(col) for col in default_headers}
 		
-	elif runtype == 'setDefaultCols':
+	elif runtype == 'setDefaultCols': return editDefaultHeaders('set','Input new default headers, separated by commas: \n',
+								    'Are you sure you wish to change the current default columns to {}? (Y/N)  ',
+								    'Default columns replaced. New default columns are {}', 'setDefaultHeaders(headers)',
+								    'Current default columns have been preserved. they are {}')
 		
-		args = sys.argv[2:]
-		if len(args) == 0: args = input('Input new default headers, separated by commas: \n')
-		else: args = ' '.join(args)
-		if ',' in args: args = args.split(',')
-		else: args = [args]
-		newHeaders = [item.lstrip(' ') for item in args]
+	elif runtype == 'addDefaultCols': return editDefaultHeaders('add','Input new default headers, separated by commas: \n',
+								    'Are you sure you wish to add the column(s) {} to the list of default columns? (Y/N)  ',
+								    'Added {} to default columns. Default columns are {}', '[headers, setDefaultHeaders(default_headers + headers)]',
+								    'Current default columns have been preserved. they are {}')
 		
-		userConfirmation = (input(f'Are you sure you wish to change the current default columns to {newHeaders}? (Y/N)  ') == 'Y')
-		if userConfirmation: print(f'Default columns replaced. New default columns are {setDefaultHeaders(newHeaders)}'); return
-		else: print(f'Current default columns have been preserved. they are {default_headers}'); return
-		
-	elif runtype == 'addDefaultCols':
-		
-		args = sys.argv[2:]
-		if len(args) == 0: args = input('Input default headers to add, separated by commas: \n')
-		else: args = ' '.join(args)
-		if ',' in args: args = args.split(',')
-		else: args = [args]
-		newHeaders = [item.lstrip(' ') for item in args]
-		
-		userConfirmation = (input(f'Are you sure you wish to add the column(s) {newHeaders} to the list of default columns? (Y/N)  ') == 'Y')
-		if userConfirmation: print(f'Added {newHeaders} to default columns. Default columns are {setDefaultHeaders(default_headers + newHeaders)}'); return
-		else: print(f'Current default columns have been preserved. they are {default_headers}'); return
-		
-	elif runtype == 'removeDefaultCols':
-		
-		args = sys.argv[2:]
-		if len(args) == 0: args = input('Input default headers to remove, separated by commas: \n')
-		else: args = ' '.join(args)
-		if ',' in args: args = args.split(',')
-		else: args = [args]
-		removeHeaders = [item.lstrip(' ') for item in args]
-		nOverlap = [item for item in removeHeaders if item.upper() not in [col.upper() for col in default_headers]]
-		
-		if nOverlap == removeHeaders:
-			print(f'None of these columns ({removeHeaders}) were found in the list of default headers ({default_headers}). \n> if you meant to add to or replace the current default columns try addDefaultCols or setDefaultCols')
-			return
-		userConfirmation = (input(f'Are you sure you wish to remove the column(s) {removeHeaders} from the list of default columns? (Y/N)  ').upper() == 'Y')
-		if userConfirmation:
-			print(f'Removed {removeHeaders} from default columns. Current default columns are {setDefaultHeaders([col for col in default_headers if col.upper() not in [ncol.upper() for ncol in removeHeaders]])}')
-			if len(nOverlap) > 0: print(f'Column(s) {nOverlap} were not found in the list of default headers, so they were ignored')
-		else: print(f'Current default columns have been preserved. they are {default_headers}')
-		return
-		
+	elif runtype == 'removeDefaultCols': return editDefaultHeaders('remove','Input new default headers, separated by commas: \n',
+								       'Are you sure you wish to remove the column(s) {} from the list of default columns? (Y/N)  ',
+								       'Added {} to default columns. Default columns are {}',
+								       '[headers, setDefaultHeaders([col for col in default_headers if col.upper() not in [ncol.upper() for ncol in removeHeaders]])]',
+								       'Current default columns have been preserved. they are {}')
+	
 	elif runtype == 'help':
 		print(user_helpText); return
 
@@ -157,8 +148,10 @@ def main():
 		else: doSpecialRuntype(runtype)
 	else:
 		print('A newer version of this program is available. This program will stop and automatically update. Please restart the program on completion')
+		defaultHeaders = default_headers
 		newVersion = requests.get(codeSourceUrl, allow_redirects = True)
 		open(__file__, 'wb').write(newVersion.content)
+		print(default_headers); setDefaultHeaders(defaultHeaders); print(default_headers)
 		print('Update installed successfully.')
 
 main()
