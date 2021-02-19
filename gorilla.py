@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-version = 1.40
+version = 1.41
 
 import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
 import sys; import os
 import requests
+from textwrap import wrap
 
 codeSourceUrl = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/gorilla.py'
 
@@ -58,7 +59,7 @@ def setDefaultHeaders(newHeaders):
 def editDefaultHeaders(mode, userInputMessage, userConfirmationMessage, userConfirmedMessage, userConfirmedVars, userCancelledMessage):
 	
 	args = sys.argv[2:]
-	if len(args) == 0: args = input(userInputMessage)
+	if len(args) == 0: args = input(wrap(userInputMessage, screenWidth-5))
 	else: args = ' '.join(args)	
 	if ',' in args: args = args.split(',')
 	else: args = [args]	
@@ -67,20 +68,20 @@ def editDefaultHeaders(mode, userInputMessage, userConfirmationMessage, userConf
 	if mode == 'remove':
 		nOverlap = [item for item in headers if item.upper() not in [col.upper() for col in default_headers]]
 		if nOverlap == headers:
-			print(f"""None of these columns ({headers}) were found in the list of default headers ({default_headers}).
-			      	> if you meant to add to or replace the current default columns try addDefaultCols or setDefaultCols""")
+			print(wrap(f"""None of these columns ({headers}) were found in the list of default headers ({default_headers}).
+	> if you meant to add to or replace the current default columns try addDefaultCols or setDefaultCols""", screenWidth-5))
 			return	
-	userConfirmation = (input(userConfirmationMessage.format(headers)) == 'Y')
+	userConfirmation = (input(wrap(userConfirmationMessage.format(headers)), screenWidth-5) == 'Y')
 	if userConfirmation:
-		print(userConfirmedMessage.format(eval(userConfirmedVars)))
-		if mode == 'remove' and len(nOverlap) > 0: print(f'Column(s) {nOverlap} were not found in the list of default headers, so they were ignored')
-	else: print(userCancelledMessage.format(default_headers))
+		print(wrap(userConfirmedMessage.format(eval(userConfirmedVars)), screenWidth-5))
+		if mode == 'remove' and len(nOverlap) > 0: print(wrap(f'Column(s) {nOverlap} were not found in the list of default headers, so they were ignored', screenWidth-5))
+	else: print(wrap(userCancelledMessage.format(default_headers),screenWidth-5))
 
 def doSpecialRuntype(runtype):
 	
 	if runtype == 'getCols':
 		df = pd.read_excel(getData()); df_cols = [col for col in df]
-		print(user_colsText); {print(f'{i+1}. {df_cols[i]}') for i in range(len(df_cols))}
+		print(wrap(user_colsText, screenWidth-5)); {print(f'{i+1}. {df_cols[i]}') for i in range(len(df_cols))}
 		
 	elif runtype == 'getDefaultCols':
 		{print(col) for col in default_headers}
@@ -102,7 +103,7 @@ def doSpecialRuntype(runtype):
 								       'Current default columns have been preserved. they are {}')
 	
 	elif runtype == 'help':
-		print(user_helpText); return
+		print(wrap(user_helpText, screenWidth-5)); return
 
 def get_responses(output_type='xlsx', headers=default_headers, clean_results=True, show_index = False):
 	
@@ -147,11 +148,12 @@ def main():
 		if runtype == 'standard': get_responses()
 		else: doSpecialRuntype(runtype)
 	else:
-		print('A newer version of this program is available. This program will stop and automatically update. Please restart the program on completion')
+		print(wrap('A newer version of this program is available. This program will stop and automatically update. Please restart the program on completion', screenWidth-5))
 		defaultHeaders = default_headers
 		newVersion = requests.get(codeSourceUrl, allow_redirects = True)
 		open(__file__, 'wb').write(newVersion.content)
-		print(default_headers); setDefaultHeaders(defaultHeaders); print(default_headers)
+		setDefaultHeaders(defaultHeaders)
 		print('Update installed successfully.')
 
+screenWidth = os.get_terminal_size().columns
 main()
