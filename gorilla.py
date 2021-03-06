@@ -107,7 +107,9 @@ def get_responses(operateOn, makeNewDir, clean_results, show_index):
 	
 	# Gets and processes the sheet, and makes a datatable out of the relevant rows from the selected columns
 	
-	file_path = getData(); df = pd.read_excel(file_path); 
+	file_path = getData()
+	if file_path == None: return
+	df = pd.read_excel(file_path); 
 	if type(df) == 'NoneType': print('Failed to enter a filepath.'); return # gets dataframe, and checks whether it's empty
 	
 	key = [['Zone Name', 'Response'], ['Screen Name', 'response']]['response_button_text' in list(df['Zone Type'])]
