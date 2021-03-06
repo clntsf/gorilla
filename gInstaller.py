@@ -46,7 +46,7 @@ def main():
 		else: writer = open(homedir+'/.zprofile','a'); writer.write('export PATH=$PATH":$HOME/bin/gorilla"'); writer.close()
 		
 	os.system('mkdir ~/bin'); getNewest()
-	os.system('rm -rf ~/gorilla-installer')
+	os.system('rm -rf ~/gorilla-installer; rm -rf ~/installer.zip')
 		
 	# make sure non-standard lib dependencies are downloaded with PIP
 
