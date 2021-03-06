@@ -9,6 +9,7 @@ from textwrap import fill
 from selector import processRuntype
 from gInstaller import getNewest
 
+versionSourceUrl = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/gorilla.py'
 default_headers = ['Trial Number', 'Response', 'Zone Type'] # List of default columns, add columns in as needed. Columns listed here but not in the excel sheet will not be included
 user_colsText = f'\nList of Column headers in selected sheet: \n' # Header for the getCols function, which displays all columns in the selected sheet
 user_helpText = '' 
@@ -16,7 +17,7 @@ user_helpText = ''
 ###### AUTO-UPDATING ######
 
 def checkIfNewest():
-	nv1 = str(requests.get(codeSourceUrl, allow_redirects=True).content).split('\\n')[1]
+	nv1 = str(requests.get(versionSourceUrl, allow_redirects=True).content).split('\\n')[1]
 	newestVersion = float(nv1[nv1.index('=')+1:])
 	return newestVersion == version
 		
