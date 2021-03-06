@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-version = 1.41
+version = 1.42
 
-import tkinter as tk
-from tkinter import filedialog
+import tkinter as tk; from tkinter import filedialog
 import pandas as pd
 import sys; import os
 import requests
-from textwrap import wrap
-
-codeSourceUrl = 'https://raw.githubusercontent.com/ctsf1/gorilla/main/gorilla.py'
+from textwrap import fill
+from selector import processRuntype
+from gInstaller import getNewest
 
 default_headers = ['Trial Number', 'Response', 'Zone Type'] # List of default columns, add columns in as needed. Columns listed here but not in the excel sheet will not be included
-user_cmds = ['getCols', 'getDefaultCols', 'setDefaultCols', 'addDefaultCols', 'removeDefaultCols', 'help'] # List of commands the user can input to perform special functions. ** Should not be edited under most circumstances **
 user_colsText = f'\nList of Column headers in selected sheet: \n' # Header for the getCols function, which displays all columns in the selected sheet
 user_helpText = '' 
+	
+###### AUTO-UPDATING ######
 
 def checkIfNewest():
 	nv1 = str(requests.get(codeSourceUrl, allow_redirects=True).content).split('\\n')[1]
@@ -22,20 +22,12 @@ def checkIfNewest():
 		
 # Takes in arguments passed to terminal and determines the function to perform #######################################################################
 
-def getRuntype():
-	
-	runtypes = [item for item in user_cmds if item in sys.argv] # 			>	gets list of all defined commands included in user terminal input
-	if len(runtypes) == 0: return 'standard' # 												>	if none are referenced, program runs the get_responses function
-	elif len(runtypes) == 1: return runtypes[0] # 										>	if one is referenced, the program runs that function
-	else: return args[min([args.index(item) for item in runtypes])] #			>	if more than one is referenced, program defaults to the first one mentioned
-
-def getData(): # Gets the dataframe from the excel sheet ##########################################################################################
+def getData():
 
 	root = tk.Tk(); root.withdraw()
-	
 	file_path = filedialog.askopenfilename()
 	if file_path == '': return None
-	return file_path
+	else: return file_path
 
 # Changes default headers set in the list in this file through the user's input in terminal ###################################################################
 	
@@ -59,7 +51,7 @@ def setDefaultHeaders(newHeaders):
 def editDefaultHeaders(mode, userInputMessage, userConfirmationMessage, userConfirmedMessage, userConfirmedVars, userCancelledMessage):
 	
 	args = sys.argv[2:]
-	if len(args) == 0: args = input(wrap(userInputMessage, screenWidth-5))
+	if len(args) == 0: args = input(fill(userInputMessage, screenWidth))
 	else: args = ' '.join(args)	
 	if ',' in args: args = args.split(',')
 	else: args = [args]	
@@ -68,44 +60,44 @@ def editDefaultHeaders(mode, userInputMessage, userConfirmationMessage, userConf
 	if mode == 'remove':
 		nOverlap = [item for item in headers if item.upper() not in [col.upper() for col in default_headers]]
 		if nOverlap == headers:
-			print(wrap(f"""None of these columns ({headers}) were found in the list of default headers ({default_headers}).
-	> if you meant to add to or replace the current default columns try addDefaultCols or setDefaultCols""", screenWidth-5))
-			return	
-	userConfirmation = (input(wrap(userConfirmationMessage.format(headers)), screenWidth-5) == 'Y')
+			print(fill(f'None of these columns ({headers}) were found in the list of default headers ({default_headers}).',screenWidth))
+			print(fill('	> if you meant to add to or replace the current default columns try addDefaultCols or setDefaultCols', screenWidth))
+			return
+	userConfirmation = (input(fill(userConfirmationMessage.format(headers)), screenWidth) == 'Y')
 	if userConfirmation:
-		print(wrap(userConfirmedMessage.format(eval(userConfirmedVars)), screenWidth-5))
-		if mode == 'remove' and len(nOverlap) > 0: print(wrap(f'Column(s) {nOverlap} were not found in the list of default headers, so they were ignored', screenWidth-5))
-	else: print(wrap(userCancelledMessage.format(default_headers),screenWidth-5))
+		print(fill(userConfirmedMessage.format(eval(userConfirmedVars)), screenWidth))
+		if mode == 'remove' and len(nOverlap) > 0: print(fill(f'Column(s) {nOverlap} were not found in the list of default headers, so they were ignored', screenWidth))
+	else: print(fill(userCancelledMessage.format(default_headers),screenWidth))
 
 def doSpecialRuntype(runtype):
 	
 	if runtype == 'getCols':
 		df = pd.read_excel(getData()); df_cols = [col for col in df]
-		print(wrap(user_colsText, screenWidth-5)); {print(f'{i+1}. {df_cols[i]}') for i in range(len(df_cols))}
+		print(fill(user_colsText, screenWidth)); {print(f'{i+1}. {df_cols[i]}') for i in range(len(df_cols))}
 		
 	elif runtype == 'getDefaultCols':
 		{print(col) for col in default_headers}
 		
-	elif runtype == 'setDefaultCols': return editDefaultHeaders('set','Input new default headers, separated by commas: \n',
+	elif runtype == 'set': return editDefaultHeaders('set','Input new default headers, separated by commas: \n',
 								    'Are you sure you wish to change the current default columns to {}? (Y/N)  ',
 								    'Default columns replaced. New default columns are {}', 'setDefaultHeaders(headers)',
 								    'Current default columns have been preserved. they are {}')
 		
-	elif runtype == 'addDefaultCols': return editDefaultHeaders('add','Input new default headers, separated by commas: \n',
+	elif runtype == 'add': return editDefaultHeaders('add','Input new default headers, separated by commas: \n',
 								    'Are you sure you wish to add the column(s) {} to the list of default columns? (Y/N)  ',
 								    'Added {} to default columns. Default columns are {}', '[headers, setDefaultHeaders(default_headers + headers)]',
 								    'Current default columns have been preserved. they are {}')
 		
-	elif runtype == 'removeDefaultCols': return editDefaultHeaders('remove','Input new default headers, separated by commas: \n',
+	elif runtype == 'remove': return editDefaultHeaders('remove','Input new default headers, separated by commas: \n',
 								       'Are you sure you wish to remove the column(s) {} from the list of default columns? (Y/N)  ',
 								       'Added {} to default columns. Default columns are {}',
 								       '[headers, setDefaultHeaders([col for col in default_headers if col.upper() not in [ncol.upper() for ncol in removeHeaders]])]',
 								       'Current default columns have been preserved. they are {}')
 	
 	elif runtype == 'help':
-		print(wrap(user_helpText, screenWidth-5)); return
+		print(fill(user_helpText, screenWidth)); return
 
-def get_responses(output_type='xlsx', headers=default_headers, clean_results=True, show_index = False):
+def get_responses(operateOn, makeNewDir, clean_results, show_index):
 	
 	# Takes terminal args and converts them to function params, giving them priority over those written in-file ################################################
 
@@ -128,31 +120,21 @@ def get_responses(output_type='xlsx', headers=default_headers, clean_results=Tru
 		if 'Trial Number' in newdf: #																										> replaces floating point trial number values with ints, and renames the column to 'Trial' for simplicity
 			newdf['Trial Number'] = [int(item) for item in newdf['Trial Number']]
 			newdf = newdf.rename(columns={'Trial Number': 'Trial'})
-	
-	# Output handling for different output types (to terminal as string, to input sheet currently supported)
-	
-	if output_type == 'string': #																											> Outputs as a string printed to terminal
-		stringdf = newdf.to_string(index=show_index)
-		print(stringdf); return
-	if output_type == 'xlsx': #																												> Outputs as a new sheet in the selected workbook
-		writer = pd.ExcelWriter(file_path, mode='a', engine='openpyxl'); sheet_name = 'output' 
-		newdf.to_excel(writer, sheet_name, index=show_index, startrow=1, startcol=1) 
-		writer.save()
-	else: print('Invalid output type. Check your arguments'); return #												> Handles invalid input types											
+
+	writer = pd.ExcelWriter(file_path, mode='a', engine='openpyxl'); sheet_name = 'output' 
+	newdf.to_excel(writer, sheet_name, index=show_index, startrow=1, startcol=1) 
+	writer.save()											
 
 # Main function ########################################################################################################################
 
 def main():
 	if checkIfNewest():
-		runtype = getRuntype()
-		if runtype == 'standard': get_responses()
+		runtype, params = processRuntype(); print(params)
+		if runtype == 'std': get_responses(*params)
 		else: doSpecialRuntype(runtype)
 	else:
-		print(wrap('A newer version of this program is available. This program will stop and automatically update. Please restart the program on completion', screenWidth-5))
-		defaultHeaders = default_headers
-		newVersion = requests.get(codeSourceUrl, allow_redirects = True)
-		open(__file__, 'wb').write(newVersion.content)
-		setDefaultHeaders(defaultHeaders)
+		print(fill('A newer version of this program is available. This program will stop and automatically update. Please restart the program on completion', screenWidth))
+		getNewest(default_headers)
 		print('Update installed successfully.')
 
 screenWidth = os.get_terminal_size().columns
